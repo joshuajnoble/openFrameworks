@@ -127,6 +127,8 @@
 		E4F3BB2B12F4C752002D19BB /* ofTessellator.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F3BB1312F4C752002D19BB /* ofTessellator.h */; };
 		E4F3BB2E12F4C752002D19BB /* ofTrueTypeFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4F3BB1612F4C752002D19BB /* ofTrueTypeFont.cpp */; };
 		E4F3BB2F12F4C752002D19BB /* ofTrueTypeFont.h in Headers */ = {isa = PBXBuildFile; fileRef = E4F3BB1712F4C752002D19BB /* ofTrueTypeFont.h */; };
+		ED40943C15E9EC7600A4D9AB /* ofXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED40943A15E9EC7600A4D9AB /* ofXml.cpp */; };
+		ED40943D15E9EC7600A4D9AB /* ofXml.h in Headers */ = {isa = PBXBuildFile; fileRef = ED40943B15E9EC7600A4D9AB /* ofXml.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -191,7 +193,7 @@
 		E4B27ADC10CBE92A00536013 /* ofVideoGrabber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofVideoGrabber.h; path = ../../../openFrameworks/video/ofVideoGrabber.h; sourceTree = SOURCE_ROOT; };
 		E4B27ADD10CBE92A00536013 /* ofVideoPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofVideoPlayer.cpp; path = ../../../openFrameworks/video/ofVideoPlayer.cpp; sourceTree = SOURCE_ROOT; };
 		E4B27ADE10CBE92A00536013 /* ofVideoPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofVideoPlayer.h; path = ../../../openFrameworks/video/ofVideoPlayer.h; sourceTree = SOURCE_ROOT; };
-		E4B27C1510CBEB8E00536013 /* openFrameworks.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = openFrameworks.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4B27C1510CBEB8E00536013 /* openFrameworksDebug.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = openFrameworksDebug.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4B5AE1412D94F9B00BA355D /* ofQtUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofQtUtils.cpp; path = ../../../openFrameworks/video/ofQtUtils.cpp; sourceTree = SOURCE_ROOT; };
 		E4B5AE1512D94F9B00BA355D /* ofQtUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofQtUtils.h; path = ../../../openFrameworks/video/ofQtUtils.h; sourceTree = SOURCE_ROOT; };
 		E4B5AE1612D94F9B00BA355D /* ofQuickTimeGrabber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofQuickTimeGrabber.cpp; path = ../../../openFrameworks/video/ofQuickTimeGrabber.cpp; sourceTree = SOURCE_ROOT; };
@@ -267,6 +269,8 @@
 		E4F3BB1312F4C752002D19BB /* ofTessellator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofTessellator.h; path = ../../../openFrameworks/graphics/ofTessellator.h; sourceTree = SOURCE_ROOT; };
 		E4F3BB1612F4C752002D19BB /* ofTrueTypeFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofTrueTypeFont.cpp; path = ../../../openFrameworks/graphics/ofTrueTypeFont.cpp; sourceTree = SOURCE_ROOT; };
 		E4F3BB1712F4C752002D19BB /* ofTrueTypeFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofTrueTypeFont.h; path = ../../../openFrameworks/graphics/ofTrueTypeFont.h; sourceTree = SOURCE_ROOT; };
+		ED40943A15E9EC7600A4D9AB /* ofXml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofXml.cpp; path = ../types/ofXml.cpp; sourceTree = "<group>"; };
+		ED40943B15E9EC7600A4D9AB /* ofXml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ofXml.h; path = ../types/ofXml.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -417,7 +421,7 @@
 				E4328160138AC04A0047C5CB /* Release.xcconfig */,
 				E4B27AAA10CBE92A00536013 /* openFrameworks */,
 				E45BE5980E8CC70C009D7055 /* frameworks */,
-				E4B27C1510CBEB8E00536013 /* openFrameworks.a */,
+				E4B27C1510CBEB8E00536013 /* openFrameworksDebug.a */,
 			);
 			sourceTree = "<group>";
 		};
@@ -502,6 +506,8 @@
 		E4F3BAE212F4C745002D19BB /* utils */ = {
 			isa = PBXGroup;
 			children = (
+				ED40943A15E9EC7600A4D9AB /* ofXml.cpp */,
+				ED40943B15E9EC7600A4D9AB /* ofXml.h */,
 				E4F3BAE312F4C745002D19BB /* ofConstants.h */,
 				E4F3BAE412F4C745002D19BB /* ofFileUtils.cpp */,
 				E4F3BAE512F4C745002D19BB /* ofFileUtils.h */,
@@ -610,6 +616,7 @@
 				E4C5E387131AC1B10050F992 /* ofRtAudioSoundStream.h in Headers */,
 				E4C5E38B131AC1BE0050F992 /* ofBaseSoundStream.h in Headers */,
 				772BDF74146928600030F0EE /* ofOpenALSoundPlayer.h in Headers */,
+				ED40943D15E9EC7600A4D9AB /* ofXml.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -630,7 +637,7 @@
 			);
 			name = openFrameworks;
 			productName = openFrameworksLib;
-			productReference = E4B27C1510CBEB8E00536013 /* openFrameworks.a */;
+			productReference = E4B27C1510CBEB8E00536013 /* openFrameworksDebug.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -718,6 +725,7 @@
 				92C55F88132DA7DD00EC2631 /* ofPath.cpp in Sources */,
 				E4C5E388131AC1B10050F992 /* ofRtAudioSoundStream.cpp in Sources */,
 				772BDF73146928600030F0EE /* ofOpenALSoundPlayer.cpp in Sources */,
+				ED40943C15E9EC7600A4D9AB /* ofXml.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

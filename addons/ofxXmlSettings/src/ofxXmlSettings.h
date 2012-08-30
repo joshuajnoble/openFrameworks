@@ -75,7 +75,7 @@ using namespace Poco::XML;
 
 #define MAX_TAG_VALUE_LENGTH_IN_CHARS		1024
 
-class ofxXmlSettings{
+class ofxXmlSettings {
 
 	public:
         ofxXmlSettings();
@@ -140,13 +140,7 @@ class ofxXmlSettings{
 		int 	addValue(const string&  tag, double         value);
 		int 	addValue(const string&  tag, const string& 	value);
     
-        int     addTag( const string& tag) { return addTagByPath(tag); }
-
-		int		addTagByPath(const string& tag); //adds an empty tag at the current level
-        int 	addTagByPath(const string&  tag, int            value);
-        int 	addTagByPath(const string&  tag, double         value);
-        int 	addTagByPath(const string&  tag, const string& 	value);
-
+        int     addTag( const string& tag);
 
         // Attribute-related methods
 		int		addAttribute(const string& tag, const string& attribute, int value, int which = 0);
@@ -183,10 +177,6 @@ class ofxXmlSettings{
 		bool	loadFromBuffer( string buffer );
 		void	copyXmlToString(string & str);
 
-		//TiXmlDocument 	doc;
-        Poco::XML::Document& getDocument() const;
-        Poco::XML::Document& getDocument();
-    
 		bool 			bDocLoaded;
         
         string          getValueByPath(const string& path);
@@ -194,10 +184,11 @@ class ofxXmlSettings{
 
 	protected:
     
-        Poco::XML::Document *document;
+        //Poco::XML::Document *document;
         Element *currentElement;
-        Poco::XML::DOMParser parser;
-
+        //Poco::XML::DOMParser parser;
+    
+        ofXml xml;
         ofFile file;
     
         Element* getElement(const string& tag, const int which, bool useFirstTagForIndex = false);

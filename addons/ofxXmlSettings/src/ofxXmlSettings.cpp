@@ -4,12 +4,6 @@
 #include <string>
 #include <iostream>
 
-Poco::XML::Document& ofxXmlSettings::getDocument() 
-{
-    return *document;
-}
-
-
 //----------------------------------------
 // a pretty useful tokenization system:
 static vector<string> tokenize(const string & str, const string & delim);
@@ -48,11 +42,7 @@ ofxXmlSettings::ofxXmlSettings(const string& xmlFile)
 //---------------------------------------------------------
 ofxXmlSettings::~ofxXmlSettings()
 {
-    if(currentElement)
-        currentElement->release();
     
-    if(document)
-        document->release();
 }
 
 //---------------------------------------------------------
@@ -75,9 +65,9 @@ bool ofxXmlSettings::loadFile(const string& xmlFile){
     file.open(cachedFilename); 
     ofBuffer buff = file.readToBuffer();
     
-    string xml = buff.getText();
+    string xmlString = buff.getText();
     
-    try {
+    /*try {
         // read the buffer into document
         document = parser.parseString(xml);
     } catch ( Poco::XML::SAXParseException &e) {
@@ -87,7 +77,9 @@ bool ofxXmlSettings::loadFile(const string& xmlFile){
         
         ofLog(OF_LOG_ERROR, sstream.str());
         return false;
-    }
+    }*/
+    
+    xml.loadFromBuffer(xmlString);
     
 	//theo removed bool check as it would
 	//return false if the file exists but was
@@ -95,7 +87,7 @@ bool ofxXmlSettings::loadFile(const string& xmlFile){
 
     //our push pop level should be set to 0!
 	level = 0;
-    currentElement = document->documentElement(); // now we're at the root
+    currentElement = xml.getDocument()->documentElement(); // now we're at the root
 
     file.close();
     
@@ -110,7 +102,7 @@ bool ofxXmlSettings::saveFile(const string& xmlFile){
     ostringstream stream;
     
     Poco::XML::DOMWriter writer;
-    writer.writeNode( stream, document );
+    writer.writeNode( stream, xml.getDocument() );
     
     file.open(xmlFile, ofFile::ReadWrite);
     
@@ -142,7 +134,7 @@ bool ofxXmlSettings::saveFile(){
     ostringstream stream;
     
     Poco::XML::DOMWriter writer;
-    writer.writeNode( stream, document );
+    writer.writeNode( stream, xml.getDocument() );
     
     ofBuffer buffer(stream.str().c_str(), stream.str().size());
     
@@ -291,7 +283,7 @@ int ofxXmlSettings::popTag()
     }
     
     if(currentElement->parentNode()->nodeType() == Node::DOCUMENT_NODE) {
-        currentElement = document->documentElement(); // we're back at the top
+        currentElement = xml.getDocument()->documentElement(); // we're back at the top
         level = 0;
     }
     
@@ -370,7 +362,7 @@ int ofxXmlSettings::writeTag(const string& tag, const string& valueStr, int whic
         // create all the tags that don't exist
         for(int i = lastExistingTag; i < tokens.size(); i++)
         {
-            Element *newElement = document->createElement(tokens.at(i));
+            Element *newElement = xml.getDocument()->createElement(tokens.at(i));
             element->appendChild(newElement);
             element = newElement;
         }
@@ -378,7 +370,7 @@ int ofxXmlSettings::writeTag(const string& tag, const string& valueStr, int whic
         
         if(valueStr != "") 
         {
-            Text *text = document->createTextNode(valueStr);
+            Text *text = xml.getDocument()->createTextNode(valueStr);
             try {
                 element->appendChild( (Node*) text);
             } catch ( DOMException &e ) {
@@ -393,10 +385,10 @@ int ofxXmlSettings::writeTag(const string& tag, const string& valueStr, int whic
     } else {
     
         // get last tag in the tag list
-        Element *newElement = document->createElement(tag);
+        Element *newElement = xml.getDocument()->createElement(tag);
         
         if(valueStr != "") {
-            Text *text = document->createTextNode(valueStr);
+            Text *text = xml.getDocument()->createTextNode(valueStr);
             try {
                 newElement->appendChild( (Node*) text);
             } catch ( DOMException &e ) {
@@ -422,7 +414,7 @@ int ofxXmlSettings::setValue(const string& tag, int value, int which){
     }
     
     if(element->firstChild()->nodeType() == Node::TEXT_NODE) {
-        Text *node = document->createTextNode(ofToString(value));
+        Text *node = xml.getDocument()->createTextNode(ofToString(value));
         element->replaceChild( (Node*) node, element->firstChild()); // swap out
     }
     
@@ -444,7 +436,7 @@ int ofxXmlSettings::setValue(const string& tag, double value, int which){
     }
     
     if(element->firstChild()->nodeType() == Node::TEXT_NODE) {
-        Text *node = document->createTextNode(ofToString(value));
+        Text *node = xml.getDocument()->createTextNode(ofToString(value));
         element->replaceChild( (Node*) node, element->firstChild()); // swap out
     }
     
@@ -466,7 +458,7 @@ int ofxXmlSettings::setValue(const string& tag, const string& value, int which){
     }
     
     if(element->firstChild()->nodeType() == Node::TEXT_NODE) {
-        Text *node = document->createTextNode(value);
+        Text *node = xml.getDocument()->createTextNode(value);
         element->replaceChild( (Node*) node, element->firstChild()); // swap out
     }
     
@@ -500,40 +492,27 @@ int ofxXmlSettings::getSiblingCount(Element *element, const string tag) {
 // to be deprecated
 //---------------------------------------------------------
 int ofxXmlSettings::addValue(const string& tag, int value){
-    return addTagByPath(tag, value) - 1;
+    addValue(tag, ofToString(value));
+    return getSiblingCount(currentElement, tag) - 1;
 }
 
 // to be deprecated
 //---------------------------------------------------------
 int ofxXmlSettings::addValue(const string&  tag, double value){
-	return addTagByPath(tag, value) - 1;
+    addValue(tag, ofToString(value));
+    return getSiblingCount(currentElement, tag) - 1;
 }
 
 // to be deprecated
 //---------------------------------------------------------
 int ofxXmlSettings::addValue(const string& tag, const string& value){
-	return addTagByPath(tag, value) - 1;
-}
-
-//---------------------------------------------------------
-int ofxXmlSettings::addTagByPath(const string& tag){
     
-	return writeTag(tag, "", -1) - 1;
+    addValue(tag, value);
+    return getSiblingCount(currentElement, tag) - 1;
 }
 
-//---------------------------------------------------------
-int ofxXmlSettings::addTagByPath(const string& tag, int value){
-	return writeTag(tag, ofToString(value), -1) - 1;
-}
-
-//---------------------------------------------------------
-int ofxXmlSettings::addTagByPath(const string&  tag, double value){
-	return writeTag(tag, ofToString(value), -1) - 1;
-}
-
-//---------------------------------------------------------
-int ofxXmlSettings::addTagByPath(const string& tag, const string& value){
-	return writeTag(tag, value) - 1;
+int ofxXmlSettings::addTag( const string& tag) {
+    writeTag(tag, "");
 }
 
 //---------------------------------------------------------
@@ -697,24 +676,10 @@ int ofxXmlSettings::writeAttribute(const string& tag, const string& attribute, c
     
     Element* element = getElement(tag, which);
     
-    Attr *attr = document->createAttribute(attribute);
+    Attr *attr = xml.getDocument()->createAttribute(attribute);
     attr->setValue(valueString);
     
     if(!element) { // if it doesn't exist
-        
-        /*vector<string> tokens;
-        
-        if(tag.find(':') != string::npos) {
-            tokens = tokenize(tag, ":");
-        } else if(tag.find('/') != string::npos) {
-            tokens = tokenize(tag, "/");
-        }
-        
-        for(int i = 0; i < tokens.size(); i++) {
-            Element *newElement = document->createElement(tokens.at(i));
-            currentElement->appendChild(newElement);
-            currentElement = newElement;
-        }*/
         
         vector<string> tokens;
         bool needsTokenizing = false;
@@ -750,7 +715,7 @@ int ofxXmlSettings::writeAttribute(const string& tag, const string& attribute, c
             // create all the tags that don't exist
             for(int i = lastExistingTag; i < lastExistingTag; i++)
             {
-                Element *newElement = document->createElement(tokens.at(i));
+                Element *newElement = xml.getDocument()->createElement(tokens.at(i));
                 element->appendChild(newElement);
                 element = newElement;
             }
@@ -758,7 +723,7 @@ int ofxXmlSettings::writeAttribute(const string& tag, const string& attribute, c
             
             if(valueString != "") 
             {
-                Text *text = document->createTextNode(valueString);
+                Text *text = xml.getDocument()->createTextNode(valueString);
                 try {
                     element->appendChild( (Node*) text);
                 } catch ( DOMException &e ) {
@@ -782,22 +747,23 @@ bool ofxXmlSettings::loadFromBuffer( string buffer )
 
     int size = buffer.size();
 
-    //bool loadOkay = doc.ReadFromMemory( buffer.c_str(), size);//, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING);
+    /*
     Poco::XML::DOMParser parser;
     
     // release and null out if we already have a document
     if(document) {
-        document->release();
+        xml.getDocument()->release();
         document = 0;
     }
     
     document = parser.parseString(buffer);
+    */
     
-    if(document) {
+    if(xml.loadFromBuffer(buffer)) {
         return true;
     }
     return false;
-
+    
 }
     
 string ofxXmlSettings::getValueByPath(const string& path) { 
@@ -814,7 +780,7 @@ void ofxXmlSettings::copyXmlToString(string & str)
     
     ostringstream stream;
     Poco::XML::DOMWriter writer;
-    writer.writeNode( stream, document );
+    writer.writeNode( stream, xml.getDocument() );
 
     str = stream.str();
     
@@ -822,7 +788,7 @@ void ofxXmlSettings::copyXmlToString(string & str)
 
 void ofxXmlSettings::setValueByPath(const string& path, const string& value) { 
     Element *element = getElement(path);
-    Text* newText = document->createTextNode(path);
+    Text* newText = xml.getDocument()->createTextNode(path);
     if(element->hasChildNodes()) {
         element->replaceChild(element->firstChild(), (Node*) newText);
     } else {
