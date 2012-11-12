@@ -182,11 +182,11 @@ void ofGLRenderer::draw(ofPath & shape){
 }
 
 //----------------------------------------------------------
-void ofGLRenderer::draw(ofImage & image, float x, float y, float z, float w, float h){
+void ofGLRenderer::draw(ofImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 	if(image.isUsingTexture()){
 		ofTexture& tex = image.getTextureReference();
 		if(tex.bAllocated()) {
-			tex.draw(x,y,z,w,h);
+			tex.drawSubsection(x,y,z,w,h,sx,sy,sw,sh);
 		} else {
 			ofLogWarning() << "ofGLRenderer::draw(): texture is not allocated";
 		}
@@ -194,11 +194,11 @@ void ofGLRenderer::draw(ofImage & image, float x, float y, float z, float w, flo
 }
 
 //----------------------------------------------------------
-void ofGLRenderer::draw(ofFloatImage & image, float x, float y, float z, float w, float h){
+void ofGLRenderer::draw(ofFloatImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 	if(image.isUsingTexture()){
 		ofTexture& tex = image.getTextureReference();
 		if(tex.bAllocated()) {
-			tex.draw(x,y,z,w,h);
+			tex.drawSubsection(x,y,z,w,h,sx,sy,sw,sh);
 		} else {
 			ofLogWarning() << "ofGLRenderer::draw(): texture is not allocated";
 		}
@@ -206,11 +206,11 @@ void ofGLRenderer::draw(ofFloatImage & image, float x, float y, float z, float w
 }
 
 //----------------------------------------------------------
-void ofGLRenderer::draw(ofShortImage & image, float x, float y, float z, float w, float h){
+void ofGLRenderer::draw(ofShortImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 	if(image.isUsingTexture()){
 		ofTexture& tex = image.getTextureReference();
 		if(tex.bAllocated()) {
-			tex.draw(x,y,z,w,h);
+			tex.drawSubsection(x,y,z,w,h,sx,sy,sw,sh);
 		} else {
 			ofLogWarning() << "ofGLRenderer::draw(): texture is not allocated";
 		}
@@ -264,11 +264,19 @@ void ofGLRenderer::popView() {
 	// done like this cause i was getting GL_STACK_UNDERFLOW
 	// should ofPush/PopMatrix work the same way, what if it's mixed with glPush/PopMatrix
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(projectionStack.top().getPtr());
+	if(!projectionStack.empty()){
+		glLoadMatrixf(projectionStack.top().getPtr());
+		projectionStack.pop();
+	}else{
+		ofLogError() << "popView: couldn't pop projection matrix, stack empty. probably wrong anidated push/popView";
+	}
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(modelViewStack.top().getPtr());
-	projectionStack.pop();
-	modelViewStack.pop();
+	if(!modelViewStack.empty()){
+		glLoadMatrixf(modelViewStack.top().getPtr());
+		modelViewStack.pop();
+	}else{
+		ofLogError() << "popView: couldn't pop modelView matrix, stack empty. probably wrong anidated push/popView";
+	}
 }
 
 //----------------------------------------------------------
@@ -352,11 +360,20 @@ void ofGLRenderer::setupScreenPerspective(float width, float height, ofOrientati
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(fov, aspect, nearDist, farDist);
+		
+	ofMatrix4x4 persp;
+	persp.makePerspectiveMatrix(fov, aspect, nearDist, farDist);
+	loadMatrix( persp );
+	//gluPerspective(fov, aspect, nearDist, farDist);
+
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(eyeX, eyeY, dist, eyeX, eyeY, 0, 0, 1, 0);
+	
+	ofMatrix4x4 lookAt;
+	lookAt.makeLookAtViewMatrix( ofVec3f(eyeX, eyeY, dist),  ofVec3f(eyeX, eyeY, 0),  ofVec3f(0, 1, 0) );
+	loadMatrix( lookAt );
+	//gluLookAt(eyeX, eyeY, dist, eyeX, eyeY, 0, 0, 1, 0);
 
 	//note - theo checked this on iPhone and Desktop for both vFlip = false and true
 	if(ofDoesHWOrientation()){
@@ -427,6 +444,9 @@ void ofGLRenderer::setupScreenOrtho(float width, float height, ofOrientation ori
 	if(vFlip) {
 		ofSetCoordHandedness(OF_LEFT_HANDED);
 	}
+
+	if(nearDist == -1) nearDist = 0;
+	if(farDist == -1) farDist = 10000;
 	
 	glOrtho(0, viewW, 0, viewH, nearDist, farDist);
 
@@ -522,95 +542,93 @@ void ofGLRenderer::setCircleResolution(int res){
 
 //----------------------------------------------------------
 void ofGLRenderer::setSphereResolution(int res) {
-	int n = res * 2;
-	float ndiv2=(float)n/2;
+	if(sphereMesh.getNumVertices() == 0 || res != ofGetStyle().sphereResolution) {
+		int n = res * 2;
+		float ndiv2=(float)n/2;
     
-    if(ofGetUsingArbTex()) {
-        
-    }
-	
-	/*
-	 Original code by Paul Bourke
-	 A more efficient contribution by Federico Dosil (below)
-	 Draw a point for zero radius spheres
-	 Use CCW facet ordering
-	 http://paulbourke.net/texture_colour/texturemap/
-	 */
-	
-	float theta2 = TWO_PI;
-	float phi1 = -HALF_PI;
-	float phi2 = HALF_PI;
-	float r = 1.f; // normalize the verts //
+		/*
+		 Original code by Paul Bourke
+		 A more efficient contribution by Federico Dosil (below)
+		 Draw a point for zero radius spheres
+		 Use CCW facet ordering
+		 http://paulbourke.net/texture_colour/texturemap/
+		 */
+		
+		float theta2 = TWO_PI;
+		float phi1 = -HALF_PI;
+		float phi2 = HALF_PI;
+		float r = 1.f; // normalize the verts //
     
-	sphereMesh.clear();
+		sphereMesh.clear();
     sphereMesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
     
-	int i, j;
+		int i, j;
     float theta1 = 0.f;
-	float jdivn,j1divn,idivn,dosdivn,unodivn=1/(float)n,t1,t2,t3,cost1,cost2,cte1,cte3;
-	cte3 = (theta2-theta1)/n;
-	cte1 = (phi2-phi1)/ndiv2;
-	dosdivn = 2*unodivn;
-	ofVec3f e,p,e2,p2;
+		float jdivn,j1divn,idivn,dosdivn,unodivn=1/(float)n,t1,t2,t3,cost1,cost2,cte1,cte3;
+		cte3 = (theta2-theta1)/n;
+		cte1 = (phi2-phi1)/ndiv2;
+		dosdivn = 2*unodivn;
+		ofVec3f e,p,e2,p2;
     
-	if (n < 0){
-		n = -n;
-		ndiv2 = -ndiv2;
-	}
-	if (n < 4) {n = 4; ndiv2=(float)n/2;}
+		if (n < 0){
+			n = -n;
+			ndiv2 = -ndiv2;
+		}
+		if (n < 4) {n = 4; ndiv2=(float)n/2;}
     if(r <= 0) r = 1;
-	
-	t2=phi1;
-	cost2=cos(phi1);
-	j1divn=0;
+		
+		t2=phi1;
+		cost2=cos(phi1);
+		j1divn=0;
     
     ofVec3f vert, normal;
     ofVec2f tcoord;
-	
-	for (j=0;j<ndiv2;j++) {
-		t1 = t2;
-		t2 += cte1;
-		t3 = theta1 - cte3;
-		cost1 = cost2;
-		cost2 = cos(t2);
-		e.y = sin(t1);
-		e2.y = sin(t2);
-		p.y = r * e.y;
-		p2.y = r * e2.y;
 		
-		idivn=0;
-		jdivn=j1divn;
-		j1divn+=dosdivn;
-		for (i=0;i<=n;i++) {
-			t3 += cte3;
-			e.x = cost1 * cos(t3);
-			e.z = cost1 * sin(t3);
-			p.x = r * e.x;
-			p.z = r * e.z;
+		for (j=0;j<ndiv2;j++) {
+			t1 = t2;
+			t2 += cte1;
+			t3 = theta1 - cte3;
+			cost1 = cost2;
+			cost2 = cos(t2);
+			e.y = sin(t1);
+			e2.y = sin(t2);
+			p.y = r * e.y;
+			p2.y = r * e2.y;
 			
-            normal.set( e.x, e.y, e.z );
-            tcoord.set( idivn, jdivn );
-            vert.set( p.x, p.y, p.z );
-            
-            sphereMesh.addNormal(normal);
-            sphereMesh.addTexCoord(tcoord);
-            sphereMesh.addVertex(vert);
-			
-			e2.x = cost2 * cos(t3);
-			e2.z = cost2 * sin(t3);
-			p2.x = r * e2.x;
-			p2.z = r * e2.z;
-            
-            normal.set(e2.x, e2.y, e2.z);
-            tcoord.set(idivn, j1divn);
-            vert.set(p2.x, p2.y, p2.z);
-            
-            sphereMesh.addNormal(normal);
-            sphereMesh.addTexCoord(tcoord);
-            sphereMesh.addVertex(vert);
-            
-			idivn += unodivn;
-			
+			idivn=0;
+			jdivn=j1divn;
+			j1divn+=dosdivn;
+			for (i=0;i<=n;i++) {
+				t3 += cte3;
+				e.x = cost1 * cos(t3);
+				e.z = cost1 * sin(t3);
+				p.x = r * e.x;
+				p.z = r * e.z;
+				
+				normal.set( e.x, e.y, e.z );
+				tcoord.set( idivn, jdivn );
+				vert.set( p.x, p.y, p.z );
+				
+				sphereMesh.addNormal(normal);
+				sphereMesh.addTexCoord(tcoord);
+				sphereMesh.addVertex(vert);
+				
+				e2.x = cost2 * cos(t3);
+				e2.z = cost2 * sin(t3);
+				p2.x = r * e2.x;
+				p2.z = r * e2.z;
+				
+				normal.set(e2.x, e2.y, e2.z);
+				tcoord.set(idivn, j1divn);
+				vert.set(p2.x, p2.y, p2.z);
+				
+				sphereMesh.addNormal(normal);
+				sphereMesh.addTexCoord(tcoord);
+				sphereMesh.addVertex(vert);
+				
+				idivn += unodivn;
+				
+			}
 		}
 	}
 }
@@ -666,6 +684,32 @@ void ofGLRenderer::rotateZ(float degrees){
 //----------------------------------------------------------
 void ofGLRenderer::rotate(float degrees){
 	glRotatef(degrees, 0, 0, 1);
+}
+
+
+//----------------------------------------------------------
+void ofGLRenderer::loadIdentityMatrix (void){
+	glLoadIdentity();
+}
+
+//----------------------------------------------------------
+void ofGLRenderer::loadMatrix (const ofMatrix4x4 & m){
+	loadMatrix( m.getPtr() );
+}
+
+//----------------------------------------------------------
+void ofGLRenderer::loadMatrix (const float *m){
+	glLoadMatrixf(m);
+}
+
+//----------------------------------------------------------
+void ofGLRenderer::multMatrix (const ofMatrix4x4 & m){
+	multMatrix( m.getPtr() );
+}
+
+//----------------------------------------------------------
+void ofGLRenderer::multMatrix (const float *m){
+	glMultMatrixf(m);
 }
 
 //----------------------------------------------------------
@@ -1042,6 +1086,12 @@ void ofGLRenderer::drawString(string textString, float x, float y, float z, ofDr
 	bool hasViewport = false;
 
 	ofRectangle rViewport;
+	
+#ifdef TARGET_OPENGLES
+	if(mode == OF_BITMAPMODE_MODEL_BILLBOARD) {
+		mode = OF_BITMAPMODE_SIMPLE;
+	}
+#endif
 
 	switch (mode) {
 
@@ -1138,7 +1188,13 @@ void ofGLRenderer::drawString(string textString, float x, float y, float z, ofDr
 			glScalef(2/rViewport.width, 2/rViewport.height, 1);
 
 			glTranslatef(dScreenX, dScreenY, 0);
-			glScalef(1, -1, 1);
+            
+            if(currentFbo == NULL) {
+                glScalef(1, -1, 1);
+            } else {
+                glScalef(1,  1, 1); // invert when rendering inside an fbo
+            }
+            
 #endif
 			break;
 
@@ -1157,7 +1213,11 @@ void ofGLRenderer::drawString(string textString, float x, float y, float z, ofDr
 		if(textString[c] == '\n'){
 
 			sy += bOrigin ? -1 : 1 * (fontSize*1.7);
-			sx = x;
+			if(mode == OF_BITMAPMODE_SIMPLE) {
+				sx = x;
+			} else {
+				sx = 0;
+			}
 
 			//glRasterPos2f(x,y + (int)yOffset);
 		} else if (textString[c] >= 32){

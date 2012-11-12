@@ -4,7 +4,10 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="src" path="/ofAndroidLib"/>
+<<<<<<< HEAD
 	<classpathentry kind="src" path="ofAndroidLib_src"/>
+=======
+>>>>>>> 8d9abe6a05bd0f279cdb7cb32173908b98c879e5
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

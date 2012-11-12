@@ -24,9 +24,9 @@ public:
 	void draw(ofPolyline & poly);
 	void draw(ofPath & path);
 	void draw(vector<ofPoint> & vertexData, ofPrimitiveMode drawMode);
-	void draw(ofImage & image, float x, float y, float z, float w, float h);
-	void draw(ofFloatImage & image, float x, float y, float z, float w, float h);
-	void draw(ofShortImage & image, float x, float y, float z, float w, float h);
+	void draw(ofImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh);
+	void draw(ofFloatImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh);
+	void draw(ofShortImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh);
 
 	bool rendersPathPrimitives(){
 		return false;
@@ -64,7 +64,12 @@ public:
 	void rotateY(float degrees);
 	void rotateZ(float degrees);
 	void rotate(float degrees);
-
+	void loadIdentityMatrix (void);
+	void loadMatrix (const ofMatrix4x4 & m);
+	void loadMatrix (const float * m);
+	void multMatrix (const ofMatrix4x4 & m);
+	void multMatrix (const float * m);
+	
 	// screen coordinate things / default gl values
 	void setupGraphicDefaults();
 	void setupScreen();

@@ -6,6 +6,7 @@
  */
 
 #include "ofxPanel.h"
+#include "ofGraphics.h"
 
 ofImage ofxPanel::loadIcon;
 ofImage ofxPanel::saveIcon;
@@ -59,6 +60,18 @@ void ofxPanel::add(ofxBaseGui * element){
 	if(subpanel!=NULL){
 		subpanel->filename = filename;
 	}
+}
+
+void ofxPanel::add(ofxParameter<float> & parameter){
+	add(new ofxFloatSlider(parameter.getName(),parameter,parameter.getMin(),parameter.getMax()));
+}
+
+void ofxPanel::add(ofxParameter<int> & parameter){
+	add(new ofxIntSlider(parameter.getName(),parameter,parameter.getMin(),parameter.getMax()));
+}
+
+void ofxPanel::add(ofxParameter<bool> & parameter){
+	add(new ofxToggle(parameter.getName(),parameter));
 }
 
 void ofxPanel::clear(){

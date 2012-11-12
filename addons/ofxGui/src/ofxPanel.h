@@ -6,6 +6,8 @@
 #include "ofxSlider.h"
 #include "ofxButton.h"
 #include "ofxToggle.h"
+#include "ofRectangle.h"
+#include "ofImage.h"
 
 
 class ofxPanel : public ofxBaseGui{
@@ -20,6 +22,9 @@ public:
 	virtual void loadFromXml(ofxXmlSettings& xml);
 	
 	void add(ofxBaseGui * element);
+	void add(ofxParameter<float> & parameter);
+	void add(ofxParameter<int> & parameter);
+	void add(ofxParameter<bool> & parameter);
 	
 	void clear();
 	

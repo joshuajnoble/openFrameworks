@@ -54,21 +54,21 @@ public:
 		 }
 	}
 
-	void draw(ofImage & img, float x, float y, float z, float w, float h){
+	void draw(ofImage & img, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 		 for(int i=0;i<(int)renderers.size();i++){
-			 renderers[i]->draw(img,x,y,z,w,h);
+			 renderers[i]->draw(img,x,y,z,w,h,sx,sy,sw,sh);
 		 }
 	}
 	
-	void draw(ofFloatImage & img, float x, float y, float z, float w, float h){
+	void draw(ofFloatImage & img, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 		for(int i=0;i<(int)renderers.size();i++){
-			renderers[i]->draw(img,x,y,z,w,h);
+			renderers[i]->draw(img,x,y,z,w,h,sx,sy,sw,sh);
 		}
 	}
 	
-	void draw(ofShortImage & img, float x, float y, float z, float w, float h){
+	void draw(ofShortImage & img, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh){
 		for(int i=0;i<(int)renderers.size();i++){
-			renderers[i]->draw(img,x,y,z,w,h);
+			renderers[i]->draw(img,x,y,z,w,h,sx,sy,sw,sh);
 		}
 	}
 	
@@ -197,6 +197,37 @@ public:
 		 }
 	 }
 
+	void loadIdentityMatrix (void){
+		for(int i=0;i<(int)renderers.size();i++){
+			renderers[i]->loadIdentityMatrix();
+		}
+	}
+	
+	void loadMatrix (const ofMatrix4x4 & m){
+		for(int i=0;i<(int)renderers.size();i++){
+			renderers[i]->loadMatrix( m );
+		}
+	}
+	
+	void loadMatrix (const float * m){
+		for(int i=0;i<(int)renderers.size();i++){
+			renderers[i]->loadMatrix( m );
+		}
+	}
+	
+	void multMatrix (const ofMatrix4x4 & m){
+		for(int i=0;i<(int)renderers.size();i++){
+			renderers[i]->multMatrix( m );
+		}
+	}
+	
+	void multMatrix (const float * m){
+		for(int i=0;i<(int)renderers.size();i++){
+			renderers[i]->multMatrix( m );
+		}
+	}
+	
+	
 	// screen coordinate things / default gl values
 	 void setupGraphicDefaults(){
 		 for(int i=0;i<(int)renderers.size();i++){

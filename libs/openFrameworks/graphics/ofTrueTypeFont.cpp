@@ -160,16 +160,21 @@ static ofTTFCharacter makeContoursForCharacter(FT_Face &face){
 
 #if defined(TARGET_ANDROID) || defined(TARGET_OF_IPHONE)
 	#include <set>
-	set<ofTrueTypeFont*> all_fonts;
+	static set<ofTrueTypeFont*> & all_fonts(){
+		static set<ofTrueTypeFont*> *all_fonts = new set<ofTrueTypeFont*>;
+		return *all_fonts;
+	}
+
 	void ofUnloadAllFontTextures(){
 		set<ofTrueTypeFont*>::iterator it;
-		for(it=all_fonts.begin();it!=all_fonts.end();it++){
+		for(it=all_fonts().begin();it!=all_fonts().end();it++){
 			(*it)->unloadTextures();
 		}
 	}
+
 	void ofReloadAllFontTextures(){
 		set<ofTrueTypeFont*>::iterator it;
-		for(it=all_fonts.begin();it!=all_fonts.end();it++){
+		for(it=all_fonts().begin();it!=all_fonts().end();it++){
 			(*it)->reloadTextures();
 		}
 	}
@@ -186,7 +191,7 @@ ofTrueTypeFont::ofTrueTypeFont(){
 	bLoadedOk		= false;
 	bMakeContours	= false;
 	#if defined(TARGET_ANDROID) || defined(TARGET_OF_IPHONE)
-		all_fonts.insert(this);
+		all_fonts().insert(this);
 	#endif
 	//cps				= NULL;
 	letterSpacing = 1;
@@ -210,7 +215,7 @@ ofTrueTypeFont::~ofTrueTypeFont(){
 	}
 
 	#if defined(TARGET_ANDROID) || defined(TARGET_OF_IPHONE)
-		all_fonts.erase(this);
+		all_fonts().erase(this);
 	#endif
 }
 
@@ -222,13 +227,11 @@ void ofTrueTypeFont::unloadTextures(){
 }
 
 void ofTrueTypeFont::reloadTextures(){
-	loadFont(filename, fontSize, bAntiAliased, bFullCharacterSet, false);
+	loadFont(filename, fontSize, bAntiAliased, bFullCharacterSet, bMakeContours, simplifyAmt, dpi);
 }
 
 //-----------------------------------------------------------
-bool ofTrueTypeFont::loadFont(string filename, int fontsize, bool _bAntiAliased, bool _bFullCharacterSet, bool makeContours, float simplifyAmt, int dpi) {
-
-	bMakeContours = makeContours;
+bool ofTrueTypeFont::loadFont(string _filename, int _fontSize, bool _bAntiAliased, bool _bFullCharacterSet, bool _makeContours, float _simplifyAmt, int _dpi) {
 
 	//------------------------------------------------
 	if (bLoadedOk == true){
@@ -238,16 +241,19 @@ bool ofTrueTypeFont::loadFont(string filename, int fontsize, bool _bAntiAliased,
 	}
 	//------------------------------------------------
 
-	if( dpi == 0 ){
-		dpi = ttfGlobalDpi;
+	if( _dpi == 0 ){
+		_dpi = ttfGlobalDpi;
 	}
 
-	filename = ofToDataPath(filename);
+	filename = ofToDataPath(_filename,true);
 
 	bLoadedOk 			= false;
 	bAntiAliased 		= _bAntiAliased;
 	bFullCharacterSet 	= _bFullCharacterSet;
-	fontSize			= fontsize;
+	fontSize			= _fontSize;
+	bMakeContours 		= _makeContours;
+	simplifyAmt			= _simplifyAmt;
+	dpi 				= _dpi;
 
 	//--------------- load the library and typeface
 	
@@ -272,8 +278,8 @@ bool ofTrueTypeFont::loadFont(string filename, int fontsize, bool _bAntiAliased,
 		return false;
 	}
 
-	FT_Set_Char_Size( face, fontsize << 6, fontsize << 6, dpi, dpi);
-	lineHeight = fontsize * 1.43f;
+	FT_Set_Char_Size( face, fontSize << 6, fontSize << 6, dpi, dpi);
+	lineHeight = fontSize * 1.43f;
 
 	//------------------------------------------------------
 	//kerning would be great to support:
@@ -479,7 +485,7 @@ bool ofTrueTypeFont::loadFont(string filename, int fontsize, bool _bAntiAliased,
 
 	texAtlas.allocate(atlasPixels.getWidth(),atlasPixels.getHeight(),GL_LUMINANCE_ALPHA,false);
 
-	if(bAntiAliased && fontsize>20){
+	if(bAntiAliased && fontSize>20){
 		texAtlas.setTextureMinMagFilter(GL_LINEAR,GL_LINEAR);
 	}else{
 		texAtlas.setTextureMinMagFilter(GL_NEAREST,GL_NEAREST);
@@ -624,7 +630,7 @@ vector<ofTTFCharacter> ofTrueTypeFont::getStringAsPoints(string str){
 
 		  }else if (str[index] == ' ') {
 				 int cy = (int)'p' - NUM_CHARACTER_TO_START;
-				 X += cps[cy].width * letterSpacing * spaceSize;
+				 X += cps[cy].setWidth * letterSpacing * spaceSize;
 		  } else {
 			  	shapes.push_back(getCharacterAsPoints(str[index]));
 			  	shapes.back().translate(ofPoint(X,Y));
@@ -694,7 +700,7 @@ ofRectangle ofTrueTypeFont::getStringBoundingBox(string c, float x, float y){
 				xoffset = 0 ; //reset X Pos back to zero
 	      } else if (c[index] == ' ') {
 	     		int cy = (int)'p' - NUM_CHARACTER_TO_START;
-				 xoffset += cps[cy].width * letterSpacing * spaceSize;
+				 xoffset += cps[cy].setWidth * letterSpacing * spaceSize;
 				 // zach - this is a bug to fix -- for now, we don't currently deal with ' ' in calculating string bounding box
 		  } else {
                 GLint height	= cps[cy].height;
@@ -772,7 +778,7 @@ void ofTrueTypeFont::drawString(string c, float x, float y) {
 
 		  }else if (c[index] == ' ') {
 				 int cy = (int)'p' - NUM_CHARACTER_TO_START;
-				 X += cps[cy].width * letterSpacing * spaceSize;
+				 X += cps[cy].setWidth * letterSpacing * spaceSize;
 		  } else {
 				drawChar(cy, X, Y);
 				X += cps[cy].setWidth * letterSpacing;
@@ -871,7 +877,7 @@ void ofTrueTypeFont::drawStringAsShapes(string c, float x, float y) {
 
 		  }else if (c[index] == ' ') {
 				 int cy = (int)'p' - NUM_CHARACTER_TO_START;
-				 X += cps[cy].width;
+				 X += cps[cy].setWidth;
 				 //glTranslated(cps[cy].width, 0, 0);
 		  } else {
 				drawCharAsShape(cy, X, Y);

@@ -16,6 +16,7 @@
 #include "ofColor.h"
 #include "ofMesh.h"
 #include "ofPixels.h"
+#include "ofMatrix4x4.h"
 
 template<typename T>
 class ofImage_;
@@ -36,22 +37,23 @@ typedef ofPixels& ofPixelsRef;
 class ofBaseDraws{
 public:
 	virtual ~ofBaseDraws(){}
-	virtual void draw(float x,float y)=0;
-	virtual void draw(float x,float y,float w, float h)=0;
-	
-	virtual void draw(const ofPoint & point){
-		draw( point.x, point.y);
+	virtual void draw(float x, float y)=0;
+	virtual void draw(float x, float y, float w, float h)=0;
+	virtual void draw(const ofPoint & point) {
+		draw(point.x, point.y);
 	}
-	
-	virtual void draw(const ofRectangle & rect){
-		draw(rect.x, rect.y, rect.width, rect.height); 
+	virtual void draw(const ofRectangle & rect) {
+		draw(rect.x, rect.y, rect.width, rect.height);
+	}
+	virtual void draw(const ofPoint & point, float w, float h) {
+		draw(point.x, point.y, w, h);
 	}
 	
 	virtual float getHeight()=0;
 	virtual float getWidth()=0;
 	
 	virtual void setAnchorPercent(float xPct, float yPct){};
-    virtual void setAnchorPoint(float x, float y){};
+	virtual void setAnchorPoint(float x, float y){};
 	virtual void resetAnchor(){};
 	
 };
@@ -113,7 +115,7 @@ public:
 // ofBaseImage
 //----------------------------------------------------------
 template<typename T>
-class ofBaseImage_: public ofAbstractImage, public ofBaseHasPixels_<T>{
+class ofBaseImage_: public ofAbstractImage, virtual public ofBaseHasPixels_<T>{
 public:
 	virtual ~ofBaseImage_<T>(){};
 };
@@ -165,7 +167,7 @@ class ofBaseSoundOutput{
 //----------------------------------------------------------
 // ofBaseVideo
 //----------------------------------------------------------
-class ofBaseVideo: public ofBaseHasPixels, public ofBaseUpdates{
+class ofBaseVideo: virtual public ofBaseHasPixels, public ofBaseUpdates{
 public:
 	virtual ~ofBaseVideo(){}
 	virtual bool isFrameNew()=0;
@@ -176,7 +178,7 @@ public:
 //----------------------------------------------------------
 // ofBaseVideoDraws
 //----------------------------------------------------------
-class ofBaseVideoDraws: virtual public ofBaseVideo, public ofBaseDraws, public ofBaseHasTexture{
+class ofBaseVideoDraws: virtual public ofBaseVideo, public ofBaseImage{
 public:
 	virtual ~ofBaseVideoDraws(){}
 };
@@ -202,13 +204,14 @@ class ofBaseVideoGrabber: virtual public ofBaseVideo{
 	virtual float	getHeight() = 0;
 	virtual float	getWidth() = 0;
 	
+	virtual bool setPixelFormat(ofPixelFormat pixelFormat) = 0;
+	virtual ofPixelFormat getPixelFormat() = 0;
+
 	//should implement!
 	virtual void setVerbose(bool bTalkToMe);
 	virtual void setDeviceID(int _deviceID);
 	virtual void setDesiredFrameRate(int framerate);
 	virtual void videoSettings();
-	virtual void setPixelFormat(ofPixelFormat pixelFormat);
-	virtual ofPixelFormat getPixelFormat();
 	
 };
 
@@ -240,6 +243,9 @@ public:
 	virtual bool				isLoaded() = 0;
 	virtual bool				isPlaying() = 0;
 	
+	virtual bool				setPixelFormat(ofPixelFormat pixelFormat) = 0;
+	virtual ofPixelFormat 		getPixelFormat() = 0;
+		
 	//should implement!
 	virtual float 				getPosition();
 	virtual float 				getSpeed();
@@ -248,20 +254,18 @@ public:
 	
 	virtual void 				setPaused(bool bPause);
 	virtual void 				setPosition(float pct);
-	virtual void 				setVolume(int volume);
+	virtual void 				setVolume(float volume); // 0..1
 	virtual void 				setLoopState(ofLoopType state);
 	virtual void   				setSpeed(float speed);
 	virtual void				setFrame(int frame);  // frame 0 = first frame...
 	
 	virtual int					getCurrentFrame();
 	virtual int					getTotalNumFrames();
-	virtual int					getLoopState();
+	virtual ofLoopType			getLoopState();
 	
 	virtual void				firstFrame();
 	virtual void				nextFrame();
 	virtual void				previousFrame();
-	virtual void				setPixelFormat(ofPixelFormat pixelFormat);
-	
 };
 
 //----------------------------------------------------------
@@ -281,9 +285,9 @@ public:
 	virtual void draw(ofMesh & vertexData, bool useColors, bool useTextures, bool useNormals)=0;
 	virtual void draw(ofMesh & vertexData, ofPolyRenderMode renderType, bool useColors, bool useTextures, bool useNormals)=0;
 	virtual void draw(vector<ofPoint> & vertexData, ofPrimitiveMode drawMode)=0;
-	virtual void draw(ofImage & image, float x, float y, float z, float w, float h)=0;
-	virtual void draw(ofFloatImage & image, float x, float y, float z, float w, float h)=0;
-	virtual void draw(ofShortImage & image, float x, float y, float z, float w, float h)=0;
+	virtual void draw(ofImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh)=0;
+	virtual void draw(ofFloatImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh)=0;
+	virtual void draw(ofShortImage & image, float x, float y, float z, float w, float h, float sx, float sy, float sw, float sh)=0;
 
 	//--------------------------------------------
 	// transformations
@@ -315,7 +319,12 @@ public:
 	virtual void rotateY(float degrees){};
 	virtual void rotateZ(float degrees){};
 	virtual void rotate(float degrees){};
-
+	virtual void loadIdentityMatrix (void){};
+	virtual void loadMatrix (const ofMatrix4x4 & m){};
+	virtual void loadMatrix (const float *m){};
+	virtual void multMatrix (const ofMatrix4x4 & m){};
+	virtual void multMatrix (const float *m){};
+	
 	// screen coordinate things / default gl values
 	virtual void setupGraphicDefaults(){};
 	virtual void setupScreen(){};

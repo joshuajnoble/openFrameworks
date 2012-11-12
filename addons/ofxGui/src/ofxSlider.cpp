@@ -1,4 +1,5 @@
 #include "ofxSlider.h"
+#include "ofGraphics.h"
 
 template<typename Type>
 ofxSlider<Type>::ofxSlider(string sliderName, ofxParameter<Type> _val, Type _min, Type _max, float width, float height){
@@ -15,7 +16,7 @@ ofxSlider<Type>* ofxSlider<Type>::setup(string sliderName, ofxParameter<Type> _v
 	b.y = 0;
 	b.width = width;
 	b.height = height;
-	currentFrame = 0;
+	currentFrame = ofGetFrameNum();
 	bGuiActive = false;
 
 	ofRegisterMouseEvents(this);
