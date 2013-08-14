@@ -3,6 +3,14 @@
 	<classpathentry kind="src" path="srcJava"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+<<<<<<< HEAD
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+=======
+<<<<<<< HEAD
+	<classpathentry kind="src" path="ofAndroidLib_src"/>
+=======
+>>>>>>> 8d9abe6a05bd0f279cdb7cb32173908b98c879e5
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+>>>>>>> 7e85cd5b9d60510777fab64e4b7bfad89c7d6ef2
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
