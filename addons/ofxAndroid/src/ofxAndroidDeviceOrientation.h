@@ -35,7 +35,7 @@
 #include "ofPoint.h"
 #include "ofEvents.h"
 
-typedef void (*ofxOrientationCB)(ofVec4f&);			// typedef for orientation callback
+typedef void (*ofxOrientationCB)(ofVec3f&);			// typedef for orientation callback
 
 class ofxAndroidDeviceOrientationHandler {
 public:
@@ -52,7 +52,7 @@ public:
 	void exit();
 	
 	// returns current smoothed orientation data (value in number of g's (1g = gravity, 9.8m/s^2)
-	ofVec4f &getOrientation() {
+	ofVec3f &getOrientation() {
 		return orientation;
 	}
 
@@ -63,18 +63,18 @@ public:
 	
 	
 	// platform specific orientation engine should call this when orientation is detected
-	void update(float x, float y, float z, float w) {
-		orientation.set(x, y, z, w);
+	void update(float x, float y, float z) {
+		orientation.set(x, y, z);
 		
 		if(callback) callback(orientation);
 		ofNotifyEvent(orientationChanged,orientation,this);
 	}
 
-	ofEvent<ofVec4f> orientationChanged;
+	ofEvent<ofVec3f> orientationChanged;
 	
 protected:
 	ofxOrientationCB callback;
-    ofVec4f orientation;           // current orientation
+    ofVec3f orientation;           // current orientation
 	
 };
 

@@ -17,9 +17,9 @@ ofxAndroidDeviceOrientationHandler ofxAndroidDeviceOrientation;
 
 extern "C"{
 void
-Java_cc_openframeworks_OFAndroidDeviceOrientation_updateDeviceOrientation( JNIEnv*  env, jobject  thiz, jfloat x, jfloat y, jfloat z, jfloat w ){
+Java_cc_openframeworks_OFAndroidDeviceOrientation_updateDeviceOrientation( JNIEnv*  env, jobject  thiz, jfloat x, jfloat y, jfloat z ){
 	// android reports these in m/s^2, but ofxAccelerometer expects g's (1g = gravity = 9.81m/s^2)
-	ofxAndroidDeviceOrientation.update(x, y, z, w);
+	ofxAndroidDeviceOrientation.update(x, y, z);
 }
 }
 
@@ -40,12 +40,12 @@ void ofxAndroidDeviceOrientationHandler::setup(){
 		return;
 	}
 
-	jmethodID setupGyroscope = env->GetStaticMethodID(javaClass,"setupGyroscope","()V");
-	if(!setupGyroscope){
+	jmethodID setupDeviceOrientation = env->GetStaticMethodID(javaClass,"setupDeviceOrientation","()V");
+	if(!setupDeviceOrientation){
 		ofLogError("ofxDeviceOrientation") << "setup(): couldn't find OFAndroid.setupDeviceOrientation method";
 		return;
 	}
-	env->CallStaticVoidMethod(javaClass,setupGyroscope);
+	env->CallStaticVoidMethod(javaClass,setupDeviceOrientation);
 }
 
 void ofxAndroidDeviceOrientationHandler::exit(){

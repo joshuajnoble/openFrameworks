@@ -22,9 +22,9 @@ public class OFAndroidDeviceOrientation extends OFAndroidObject {
         {
         	orientation = sensors.get(0);
         	sensorManager.registerListener(sensorListener, orientation, SensorManager.SENSOR_DELAY_GAME);   
-        	Log.v("OF", "gyroscope set up correctly");
+        	Log.v("OF", "device orientation set up correctly");
         }else{
-        	Log.e("OF","no gyroscope available");
+        	Log.e("OF","no device orientation available");
         }
     }
 
@@ -48,14 +48,14 @@ public class OFAndroidDeviceOrientation extends OFAndroidObject {
 	private final SensorEventListener sensorListener = new SensorEventListener() {
 		
 		public void onSensorChanged(SensorEvent event) {
-			
-            updateDeviceOrientation(event.values[0], event.values[1], event.values[2], event.values[3]);
+			Log.v("OF Device Orientation", event.values[0] + " " + event.values[1] + " " + event.values[2]);
+            updateDeviceOrientation(event.values[0], event.values[1], event.values[2]);
 			
 		}
 		 
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	};
 
-	public static native void updateDeviceOrientation(float x, float y, float z, float w);
+	public static native void updateDeviceOrientation(float x, float y, float z);
     
 }
