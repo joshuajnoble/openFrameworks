@@ -3,9 +3,9 @@ package cc.openframeworks;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
@@ -229,7 +229,6 @@ class OFGLSurfaceView extends GLSurfaceView{
         setRenderer(mRenderer);
     }
 	
-	@Deprecated
 	public OFGLSurfaceView(Context context,AttributeSet attributes) {
         super(context,attributes);
         mRenderer = new OFAndroidWindow(getWidth(),getHeight());
@@ -244,8 +243,8 @@ class OFGLSurfaceView extends GLSurfaceView{
 
     @Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-    	super.surfaceDestroyed(holder);
-		OFAndroid.onSurfaceDestroyed();
+		super.surfaceDestroyed(holder);
+    	OFAndroid.onSurfaceDestroyed();
 	}
     
     boolean isSetup(){
@@ -266,10 +265,13 @@ class OFAndroidWindow implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		Log.i("OF","onSurfaceCreated");
 		OFAndroid.onSurfaceCreated();
-		Activity activity = OFAndroidLifeCycle.getActivity();
-		if(OFActivity.class.isInstance(activity))
-			((OFActivity)activity).onGLSurfaceCreated();
+		try{
+			((OFActivity)OFAndroid.getContext()).onGLSurfaceCreated();
+		}catch(Exception e){
+			Log.e("OF","couldn call onGLSurfaceCreated",e);
+		}
 		return;
+    	
     }
 	
 	@Override
@@ -290,13 +292,11 @@ class OFAndroidWindow implements GLSurfaceView.Renderer {
     	android.os.Process.setThreadPriority(8);
     	OFGestureListener.swipe_Min_Distance = (int)(Math.max(w, h)*.04);
     	OFGestureListener.swipe_Max_Distance = (int)(Math.max(w, h)*.6);
-    	Activity activity = OFAndroidLifeCycle.getActivity();
-		if(OFActivity.class.isInstance(activity))
-			((OFActivity)activity).onGLSurfaceCreated();
-    }
-    
-    public static void exit() {
-    	setup = false;
+		try{
+			((OFActivity)OFAndroid.getContext()).onGLSurfaceCreated();
+		}catch(Exception e){
+			Log.e("OF","couldn call onGLSurfaceCreated",e);
+		}
     }
     
     @Override
